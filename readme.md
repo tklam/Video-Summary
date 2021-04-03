@@ -16,7 +16,7 @@ A rather simple heuristic is currently used to capture the interesting moments i
 Suppose we want to produce a summary of
 (試映劇場《寫實的天能》完整版｜試當真)[https://www.youtube.com/watch?v=pumhdhv6r2w], please follow the steps listed below:
 
-'''
+```
 # Make a directory to store the files of this video
 mkdir "試映劇場《寫實的天能》完整版｜試當真"
 cd "試映劇場《寫實的天能》完整版｜試當真"
@@ -38,4 +38,4 @@ python  ../extract-one-frame-at-time.py --input_video video.mp4 --speech_time_lo
 
 # Combine the images and create the summary in the PDF format
 img2pdf $(ls -1v *.jpg) -o story.pdf
-'''
+```

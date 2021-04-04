@@ -2,7 +2,7 @@
 
 This is a project about producing a summary for the given video. The result is a series of images captured from the video that can sufficiently let the reader understand the whole story as if he is reading a comic book.
 
-A rather simple heuristic is currently used to capture the interesting moments in the video: if someone speaks at a particular, the video frames around that time are likely to be important. The code at this moment is the proof-of-concept of this idea.
+A rather simple heuristic is currently used to capture the interesting moments in the video: if someone speaks at a particular time, the video frames around that time are likely to be important. The code at this moment is the proof-of-concept of this idea.
 
 ## Dependencies
 
@@ -34,7 +34,7 @@ sox audio.wav -c 1 -r 32000 32k-audio.wav
 python ../find-speech.py 3 32k-audio.wav| tee find-speech.log
 
 # Collect the interesting frames
-python  ../extract-one-frame-at-time.py --input_video video.mp4 --speech_time_log find-speech.log
+python  ../extract-video-frames.py --input_video video.mp4 --speech_time_log find-speech.log
 
 # Combine the images and create the summary in the PDF format
 img2pdf $(ls -1v *.jpg) -o story.pdf

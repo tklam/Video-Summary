@@ -38,4 +38,7 @@ python  ../extract-video-frames.py --input_video video.mp4 --speech_time_log fin
 
 # Combine the images and create the summary in the PDF format
 img2pdf $(ls -1v *.jpg) -o story.pdf
+
+# Or, Combine the images and create the summary in the PPTX format
+python ../gen-pptx.py
 ```

@@ -26,8 +26,9 @@ left = top = Cm(0)
 width = Cm(25.4)
 #height = Cm(19.05)
   
-for img_path in Path(r'./').glob('frame_*.jpg'):
+for img_path in sorted(Path(r'./').glob('frame_*.jpg'), key=lambda path: int(path.stem.rsplit("_", 1)[1])):
     slide = presentation.slides.add_slide(first_slide_layout)
     pic = slide.shapes.add_picture(str(img_path), left, top, width=width)
+    print(img_path)
   
 presentation.save("story.pptx")

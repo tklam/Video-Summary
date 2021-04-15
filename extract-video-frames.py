@@ -1,4 +1,7 @@
+from PIL import Image
+from pathlib import Path
 import argparse
+import imagehash
 import itertools
 import math
 import os
@@ -13,10 +16,16 @@ def get_video_duration(input_video):
 
 
 def extract_frame(time_in_seconds, input_video, output_image):
+    if Path(output_image).is_file():
+        return output_image
+
     p = subprocess.run(['ffmpeg'] + 
             f'-ss {time_in_seconds} -y -i {input_video} -vframes 1 -q:v 2 {output_image}'.split())
     if p.returncode != 0:
         print(f'An error occurred at {time_in_seconds}')
+        return None
+
+    return output_image
 
 
 def extract_speech_time(speech_time_log):
@@ -25,36 +34,56 @@ def extract_speech_time(speech_time_log):
             tokens = l.split()
             if len(tokens) < 2:
                 continue
-            start_time = float(tokens[0])
-            end_time = float(tokens[1])
-            mid_time = (end_time - start_time) / 2.0
-            yield (start_time, mid_time, end_time)
+            start_time = round(float(tokens[0]),1)
+            end_time = round(float(tokens[1]),1)
+            mid_time = round((end_time + start_time) / 2.0, 1)
+            timestamps = [start_time, mid_time, end_time]
+            yield timestamps
+
+
+def gen_regular_timestamps(duration_secs, interval):
+    t = 0.0
+    yield t
+
+    while t < duration_secs:
+        t = t + interval
+        yield t
 
 
 def extract_main(args):
     interesting_timestamps = []
-    regular_timestamps = [t for t in range(0, math.ceil(duration_secs)+args.time_interval, args.time_interval)]
+    speech_timestampes_indexes = set({})
 
     # load the timestamps of speech
     speech_timestamps = iter(extract_speech_time(args.speech_time_log))
 
-    for r in regular_timestamps:
+    for r in gen_regular_timestamps(args.duration_secs, args.time_interval):
         has_some_non_regular = False
         prev_len = len(interesting_timestamps)
 
         # speech
         while True:
             try:
-                s_start_time, s_mid_time, s_end_time = next(speech_timestamps) # TODO mid_time and end_time is not being used
+                ts = next(speech_timestamps) # TODO mid_time and end_time is not being used
             except StopIteration:
                 break
 
-            if s_start_time < r:
-                interesting_timestamps.append(s_start_time)
-            elif s_start_time > r:
-                speech_timestamps = itertools.chain([(s_start_time, s_mid_time, s_end_time)], speech_timestamps)
-                break
-            else:
+            do_break = False 
+            i=0
+            for t in ts:
+                if t < r:
+                    interesting_timestamps.append(t)
+                    speech_timestampes_indexes.add(len(interesting_timestamps)-1)
+                    i=i+1
+                elif t > r:
+                    speech_timestamps = itertools.chain([ts[i:]], speech_timestamps)
+                    do_break = True
+                    break
+                else:
+                    do_break = True
+                    break
+
+            if do_break:
                 break
 
         if len(interesting_timestamps) > prev_len:
@@ -63,10 +92,54 @@ def extract_main(args):
         if not has_some_non_regular:
             interesting_timestamps.append(r)
 
+    frames_filenames = []
     # extract the frames
     for t in interesting_timestamps:
-        rounded_time = round(t)
-        extract_frame(t, args.input_video, f'frame_{rounded_time}.jpg')
+        rounded_time = round(t,1)
+        filename = f'frame_{rounded_time}.jpg'
+        if len(frames_filenames) > 0 and filename == frames_filenames[-1]:
+            continue
+        filename = extract_frame(t, args.input_video, filename)
+        if filename is not None:
+            frames_filenames.append(filename)
+
+    return frames_filenames, speech_timestampes_indexes
+
+
+def are_frames_similar(args, image_filename_1, image_filename_2, threshold):
+    hash_size = 10
+
+    hash_0 = imagehash.dhash(Image.open(image_filename_1), hash_size=hash_size)
+    hash_1 = imagehash.dhash(Image.open(image_filename_2), hash_size=hash_size)
+    print(f'diff {hash_0-hash_1}')
+    if hash_0 - hash_1 < threshold:
+        return True
+    else:
+        return False
+
+
+def post_filter(args, frames_filenames, speech_timestampes_indexes):
+    for i in range(0, len(frames_filenames)):
+        print(frames_filenames[i])
+
+    removed_count = 0
+    for i in range(0, len(frames_filenames)-1):
+        threshold = 15
+        if i in speech_timestampes_indexes: # try to keep as many frames marked by speech activity analysis as possible
+            threshold = 5
+
+        name_1 = frames_filenames[i]
+        name_2 = frames_filenames[i+1]
+        if not Path(name_1).is_file():
+            continue
+        if not Path(name_2).is_file():
+            continue
+        if are_frames_similar(args, name_1, name_2, threshold):
+            os.remove(name_1)
+            removed_count = removed_count + 1
+            #print(f'Remove {name_1}')
+
+    print(f'Removed {removed_count} frames because they are similar.')
 
 
 if __name__ == '__main__':
@@ -76,7 +149,7 @@ if __name__ == '__main__':
     parser.add_argument('--speech_time_log', required=True, default=None,
             help='A log file containing lines of speech segment information in the following format: \
             <start time> <end time> <wav filename>.')
-    parser.add_argument('--time_interval', required=False, default=5, type=int,
+    parser.add_argument('--time_interval', required=False, default=1, type=float,
             help='Define the time interval that a frame should be captured regularly (in seconds).')
     parser.add_argument('--only_get_video_duration', required=False, action="store_true",
             default=None, help='Report the video duration in seconds and quit.')
@@ -84,9 +157,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     duration_secs = get_video_duration(args.input_video)
+    args.duration_secs = duration_secs
     print(f'Video: {args.input_video} length in seconds: {duration_secs}')
 
     if args.only_get_video_duration:
         sys.exit(0)
 
-    extract_main(args)
+    extracted_frames_filenames, speech_timestampes_indexes = extract_main(args)
+    post_filter(args, extracted_frames_filenames, speech_timestampes_indexes)

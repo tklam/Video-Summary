@@ -1,1 +1,3 @@
 webrtcvad
+imagehash
+pptx

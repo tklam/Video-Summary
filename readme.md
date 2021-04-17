@@ -11,7 +11,7 @@ A rather simple heuristic is currently used to capture the interesting moments i
 + sox
 + webrtcvad
 + youtube-dl
-_ imagemagick
++ imagemagick
 
 ## Usage
 Suppose we want to produce a summary of

@@ -4,8 +4,8 @@ from pathlib import Path
   
 # Creating presentation object
 presentation = Presentation()
-Presentation.slide_width = Cm(25.4)
-Presentation.slide_height = Cm(19.05)
+presentation.slide_width = Cm(6.35) # Cm(12.7) # Cm(25.4)
+presentation.slide_height = Cm(4.7625) # Cm(9.525) # Cm(19.05)
   
 # Creating slide layout
 first_slide_layout = presentation.slide_layouts[6] 
@@ -23,7 +23,7 @@ first_slide_layout = presentation.slide_layouts[6]
 """
 
 left = top = Cm(0)
-width = Cm(25.4)
+width = presentation.slide_width # Cm(25.4)
 #height = Cm(19.05)
   
 for img_path in sorted(Path(r'./').glob('frame_*.jpg'), key=lambda path: float(path.stem.rsplit("_", 1)[1])):

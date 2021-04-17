@@ -36,6 +36,12 @@ python ../find-speech.py 3 32k-audio.wav| tee find-speech.log
 # Collect the interesting frames
 python  ../extract-video-frames.py --input_video video.mp4 --speech_time_log find-speech.log
 
+# Downsample the images if necessary
+for f in $(ls *.jpg)
+do
+  convert $f -resize 480x270 $f
+done
+
 # Combine the images and create the summary in the PDF format
 img2pdf $(ls -1v *.jpg) -o story.pdf
 

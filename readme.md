@@ -12,6 +12,16 @@ A rather simple heuristic is currently used to capture the interesting moments i
 + webrtcvad
 + youtube-dl
 + imagemagick
++ Tesseract
++ Tesseract-ocr language files for Chinese - Traditional
++ OpenCV
+
+# If you don't have tesseract executable in your PATH, include the following:
+pytesseract.pytesseract.tesseract_cmd = r'<full_path_to_your_tesseract_executable>'
+# Example tesseract_cmd = r'C:\Program Files (x86)\Tesseract-OCR\tesseract'
+
+# Simple image to string
+print(pytesseract.image_to_string(Image.open('test.png')))
 
 ## Usage
 Suppose we want to produce a summary of
@@ -32,7 +42,7 @@ ffmpeg -i video.mp4 -q:a 0 -map a audio.wav
 sox audio.wav -c 1 -r 32000 32k-audio.wav 
 
 # Locate the speech segments          
-python ../find-speech.py 3 32k-audio.wav| tee find-speech.log
+python -u ../find-speech.py 3 32k-audio.wav| tee find-speech.log
 
 # Collect the interesting frames
 python  ../extract-video-frames.py --input_video video.mp4 --speech_time_log find-speech.log
@@ -48,4 +58,7 @@ img2pdf $(ls -1v *.jpg) -o story.pdf
 
 # Or, Combine the images and create the summary in the PPTX format
 python ../gen-pptx.py
+
+# If the video has subtitles
+python -u ../capture_subtitle.py --x0 0 --x1 480 --y0 200 --y1 270 --is_white_subtitle | tee subtitle.txt
 ```

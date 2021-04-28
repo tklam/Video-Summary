@@ -74,7 +74,7 @@ def vad_collector(sample_rate, frame_duration_ms,
     if triggered:
         # sys.stdout.write('-(%s)' % (frame.timestamp + frame.duration))
         sys.stdout.write(' %s' % (frame.timestamp + frame.duration))
-    sys.stdout.write('\n')
+    #sys.stdout.write('\n')
     if voiced_frames:
         yield b''.join([f.bytes for f in voiced_frames])
 

@@ -20,7 +20,8 @@ def extract_frame(time_in_seconds, input_video, output_image):
         return output_image
 
     p = subprocess.run(['ffmpeg'] + 
-            f'-ss {time_in_seconds} -y -i {input_video} -vframes 1 -q:v 2 {output_image}'.split())
+            f'-ss {time_in_seconds} -y -i {input_video} -vframes 1 -q:v 2 {output_image}'.split(),
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if p.returncode != 0:
         print(f'An error occurred at {time_in_seconds}')
         return None
@@ -106,42 +107,6 @@ def extract_main(args):
     return frames_filenames, speech_timestampes_indexes
 
 
-def are_frames_similar(args, image_filename_1, image_filename_2, threshold):
-    hash_size = 10
-
-    hash_0 = imagehash.dhash(Image.open(image_filename_1), hash_size=hash_size)
-    hash_1 = imagehash.dhash(Image.open(image_filename_2), hash_size=hash_size)
-    print(f'diff {hash_0-hash_1}')
-    if hash_0 - hash_1 < threshold:
-        return True
-    else:
-        return False
-
-
-def post_filter(args, frames_filenames, speech_timestampes_indexes):
-    for i in range(0, len(frames_filenames)):
-        print(frames_filenames[i])
-
-    removed_count = 0
-    for i in range(0, len(frames_filenames)-1):
-        threshold = 15
-        if i in speech_timestampes_indexes: # try to keep as many frames marked by speech activity analysis as possible
-            threshold = 5
-
-        name_1 = frames_filenames[i]
-        name_2 = frames_filenames[i+1]
-        if not Path(name_1).is_file():
-            continue
-        if not Path(name_2).is_file():
-            continue
-        if are_frames_similar(args, name_1, name_2, threshold):
-            os.remove(name_1)
-            removed_count = removed_count + 1
-            #print(f'Remove {name_1}')
-
-    print(f'Removed {removed_count} frames because they are similar.')
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Extract frames from a video at some particular timestamps')
     parser.add_argument('--input_video', required=True, default=None,
@@ -164,4 +129,3 @@ if __name__ == '__main__':
         sys.exit(0)
 
     extracted_frames_filenames, speech_timestampes_indexes = extract_main(args)
-    post_filter(args, extracted_frames_filenames, speech_timestampes_indexes)

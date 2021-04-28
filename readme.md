@@ -53,6 +53,9 @@ do
   convert $f -resize 480x270 $f
 done
 
+# De-duplication (please adjust the parameters for every video)
+python ../gen-pptx.py
+
 # Combine the images and create the summary in the PDF format
 img2pdf $(ls -1v *.jpg) -o story.pdf
 

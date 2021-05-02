@@ -33,7 +33,7 @@ then
 
 else
   youtube-dl --embed-subs --write-sub --convert-subtitles srt --sub-lang ${subtitle_lang}  ${url} -o video
-  video=$(ls video.*) # it is expected to have only one video file
+  video=$(ls video.* | tail -n 1)
   echo "Video file name: ${video}"
 
   echo "The video needs re-encoding. This may take a long period of time."

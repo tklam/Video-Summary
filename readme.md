@@ -25,6 +25,11 @@ Suppose we want to produce a summary of
   '試映劇場《寫實的天能》完整版｜試當真' \
   https://www.youtube.com/watch?v=pumhdhv6r2w \
   25 25
+
+  # 25 25 are some magic numbers for frame deduplication, please refer to the comments in do-it-all.sh
 ```
+
+If the magic numbers are inappropriate, we can start from the deduplication step and try using another
+set of parameters.
 
 Alternatively, we can make use of batch.py.

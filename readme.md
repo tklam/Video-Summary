@@ -23,9 +23,11 @@ Suppose we want to produce a summary of
 ```
 ./do-it-all.sh \
   '試映劇場《寫實的天能》完整版｜試當真' \
+  'none'
   https://www.youtube.com/watch?v=pumhdhv6r2w \
   25 25
 
+  # 'none' indicates that the video has no subtitle. If there are some subtitles, the user can provide the subtitles's ISO code, such as 'zh-HK' .
   # 25 25 are some magic numbers for frame deduplication, please refer to the comments in do-it-all.sh
 ```
 

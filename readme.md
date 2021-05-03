@@ -16,6 +16,11 @@ A rather simple heuristic is currently used to capture the interesting moments i
 + Tesseract-ocr language files for Chinese - Traditional
 + OpenCV
 
+# Installation
+Hey, Linux users, you should know how to install all the libraries and execute the scripts.
+
+Windows users please refer to [The installation instructions for Windows users and Python newbies](https://github.com/tklam/Video-Summary/blob/master/windows.md)
+
 ## Usage
 Suppose we want to produce a summary of
 [試映劇場《寫實的天能》完整版｜試當真](https://www.youtube.com/watch?v=pumhdhv6r2w), please do:

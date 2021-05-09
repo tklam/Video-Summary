@@ -1,10 +1,10 @@
 #!/bin/bash
 
-name=${1?}
-url=${2?}
-subtitle_lang=${3?}
-upper_similarity_threshold=${4?}
-lower_similarity_threshold=${5?}
+name=${1?ID of the video}
+url=${2?Url of the video}
+subtitle_lang=${3?none, or an available subtitle such as zh-HK}
+upper_similarity_threshold=${4? Similarity threshold of the upper portion}
+lower_similarity_threshold=${5? Similarity threshold of the lower portion}
 scaled_height_pixel=270             # suppose we want the final frame to have height: 270 pixels (~ 4.7 cm when printed) #TODO
 
 # Suggested values of the magic numbers to try:
@@ -15,7 +15,7 @@ scaled_height_pixel=270             # suppose we want the final frame to have he
 # The user needs to do experiments to get the best result
 
 # Make a directory to store the files of this video
-mkdir "$name"
+mkdir -p "$name"
 cd "$name"
 
 # Download the video

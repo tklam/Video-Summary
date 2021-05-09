@@ -23,7 +23,7 @@ There are more tools required to run the script. You can install them with:
 
 and some python libraries:
 
-        pip install webrtcvad sox python-numpy python-pptx imagehash image opencv-python img2pdf
+        pip install webrtcvad sox numpy python-pptx imagehash image opencv-python img2pdf
 
 ## Access your files from Windows 
 

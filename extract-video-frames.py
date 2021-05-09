@@ -12,7 +12,13 @@ import sys
 def get_video_duration(input_video):
     cmd = ["ffprobe", "-i", input_video, "-show_entries", "format=duration",
            "-v", "quiet", "-of", "csv=p=0"]
-    return float(subprocess.check_output(cmd).decode("utf-8").strip())
+    duration_seconds = subprocess.check_output(cmd).decode("utf-8").strip()
+
+    if duration_seconds == 'N/A':
+        cmd = ["soxi", "-D", "32k-audio.wav"]
+        duration_seconds = subprocess.check_output(cmd).decode("utf-8").strip()
+
+    return float(duration_seconds)
 
 
 def extract_frame(time_in_seconds, input_video, output_image):

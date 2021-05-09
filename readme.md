@@ -40,3 +40,6 @@ If the magic numbers are inappropriate, we can start from the deduplication step
 set of parameters.
 
 Alternatively, we can make use of batch.py.
+
+## Utilities
+The HTML and Javascript in record_screen can be used to record virtually everything on your desktop. Chrome supports recording both video and audio; on the other hand, Firefox seems to be able to record video only. 

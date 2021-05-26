@@ -7,6 +7,7 @@ import math
 import os
 import subprocess
 import sys
+import multiprocessing as mp
 
 
 def get_video_duration(input_video):
@@ -57,6 +58,16 @@ def gen_regular_timestamps(duration_secs, interval):
         yield t
 
 
+def do_extract_frame(t, frames_filenames, args):
+    rounded_time = round(t,1)
+    filename = f'frame_{rounded_time}.jpg'
+    if len(frames_filenames) > 0 and filename == frames_filenames[-1]:
+        return
+    filename = extract_frame(t, args.input_video, filename)
+    if filename is not None:
+        frames_filenames.append(filename)
+
+
 def extract_main(args):
     interesting_timestamps = []
     speech_timestampes_indexes = set({})
@@ -101,14 +112,8 @@ def extract_main(args):
 
     frames_filenames = []
     # extract the frames
-    for t in interesting_timestamps:
-        rounded_time = round(t,1)
-        filename = f'frame_{rounded_time}.jpg'
-        if len(frames_filenames) > 0 and filename == frames_filenames[-1]:
-            continue
-        filename = extract_frame(t, args.input_video, filename)
-        if filename is not None:
-            frames_filenames.append(filename)
+    with mp.Pool(8) as p:
+        p.starmap(do_extract_frame, [[t, frames_filenames, args] for t in interesting_timestamps])
 
     return frames_filenames, speech_timestampes_indexes
 

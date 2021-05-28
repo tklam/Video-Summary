@@ -40,9 +40,10 @@ if __name__ == '__main__':
 
     left = top = Cm(0)
     width = presentation.slide_width 
+    height = presentation.slide_height
       
     for img_path in sorted(Path(r'./').glob('frame_*.jpg'), key=lambda path: float(path.stem.rsplit("_", 1)[1])):
         slide = presentation.slides.add_slide(first_slide_layout)
-        pic = slide.shapes.add_picture(str(img_path), left, top, width=width)
+        pic = slide.shapes.add_picture(str(img_path), left, top, width=width, height=height)
       
     presentation.save("story.pptx")

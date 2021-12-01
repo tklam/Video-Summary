@@ -195,7 +195,23 @@ def config_video_dimensions():
     return frame_dimensions[0], frame_dimensions[1]
 
 
-def main():
+def main(args):
+    video_id = args.video_id
+    if args.video_url is not None:
+        video_url = args.video_url
+    if args.local_video_path is not None:
+        video_file_path = args.local_video_path
+    upper_similarity_threshold = args.upper_similarity_threshold
+    lower_similarity_threshold = args.lower_similarity_threshold
+    need_change_dir = not args.no_need_change_dir
+    crop_width_pixel = args.crop_width_pixel
+    crop_height_pixel = args.crop_height_pixel
+    crop_x_offet = args.crop_x_offet
+    crop_y_offet = args.crop_y_offet
+    if args.subtitle_lang is not None:
+        remote_video_subtitle_lang=args.subtitle_lang
+    run_stages = args.run_stages
+
     if need_change_dir:
         pathlib.Path.mkdir(pathlib.Path(video_id), parents=True, exist_ok=True)
         os.chdir(video_id)
@@ -275,20 +291,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    video_id = args.video_id
-    if args.video_url is not None:
-        video_url = args.video_url
-    if args.local_video_path is not None:
-        video_file_path = args.local_video_path
-    upper_similarity_threshold = args.upper_similarity_threshold
-    lower_similarity_threshold = args.lower_similarity_threshold
-    need_change_dir = not args.no_need_change_dir
-    crop_width_pixel = args.crop_width_pixel
-    crop_height_pixel = args.crop_height_pixel
-    crop_x_offet = args.crop_x_offet
-    crop_y_offet = args.crop_y_offet
-    if args.subtitle_lang is not None:
-        remote_video_subtitle_lang=args.subtitle_lang
-    run_stages = args.run_stages
-
-    main()
+    main(args)

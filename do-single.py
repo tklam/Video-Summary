@@ -196,6 +196,14 @@ def config_video_dimensions():
 
 
 def main(args):
+    global video_id, video_url, video_file_path
+    global upper_similarity_threshold, lower_similarity_threshold
+    global need_change_dir
+    global crop_width_pixel, crop_height_pixel, crop_x_offset, crop_y_offset
+    global remote_video_subtitle_lang
+    global run_stages
+    global width_pixel, height_pixel
+
     video_id = args.video_id
     if args.video_url is not None:
         video_url = args.video_url

@@ -69,6 +69,12 @@ def do_extract_frame(t, frames_filenames, args):
 
 
 def extract_main(args):
+    # delete previous results
+    cur_dir = Path(os.getcwd())
+    # remove .jpg .jpg.bak
+    for j in cur_dir.glob('*.jpg*'):
+        j.unlink()
+
     interesting_timestamps = []
     speech_timestampes_indexes = set({})
 

@@ -18,9 +18,12 @@ redis_server = redis.Redis(host=redis_host, port=6379)
 video_summarizer_queue = Queue(connection=redis_server, default_timeout=3600)
 
 
-# e.g. http://localhost:5000/enqueue/123/https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DfJubafP3IMI/20/20
-@app.route('/enqueue/<string:video_id>/<path:video_url>/<int:upper_similarity_threshold>/<int:lower_similarity_threshold>')
-def index(video_id, video_url, upper_similarity_threshold, lower_similarity_threshold):
+# e.g.
+# http://localhost:5000/enqueue/123/https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DfJubafP3IMI/20/20/00:00:00/00:00:00
+@app.route('/enqueue/<string:video_id>/<path:video_url>/<int:upper_similarity_threshold>/<int:lower_similarity_threshold>/<string:preview_start_timestamp>/<string:preview_end_timestamp>')
+def index(video_id, video_url,
+        upper_similarity_threshold, lower_similarity_threshold,
+        preview_start_timestamp, preview_end_timestamp):
     args = video_summarizer.DummyArgs()
     args.video_id = video_id
     args.local_video_path = None
@@ -40,6 +43,8 @@ def index(video_id, video_url, upper_similarity_threshold, lower_similarity_thre
         video_summarizer.RunStage.DownSampleFrames.value,
         video_summarizer.RunStage.DeduplicateFrames.value,
         video_summarizer.RunStage.GeneratePptx.value ]
+    args.preview_start_timestamp = preview_start_timestamp
+    args.preview_end_timestamp = preview_end_timestamp
 
     new_job = video_summarizer_queue.enqueue(video_summarizer.main, args, result_ttl=3600)
 
@@ -49,7 +54,9 @@ def index(video_id, video_url, upper_similarity_threshold, lower_similarity_thre
                 "job_id" : new_job.id,
                 "video_url" : video_url,
                 "upper_similarity_threshold" : upper_similarity_threshold,
-                "lower_similarity_threshold" : lower_similarity_threshold
+                "lower_similarity_threshold" : lower_similarity_threshold,
+                "preview_start_timestamp" : preview_start_timestamp,
+                "preview_end_timestamp" : preview_end_timestamp
              }
             }
 
@@ -65,7 +72,17 @@ def getJob(job_id):
     if res is None or res.result is None:
         return '{}'
 
-    return '{"enqueued_job": { ' + f'"job_id":"{new_job.id}", ' + f'"result": "{res.result}",' + f'"enqueued_at": "{res.enqueued_at}",' + f'"done_at": "{res.ended_at}"' + '}}'
+    result = {
+            "enqueued_job" : {
+                "job_id" : job_id,
+                "status" : str(res.result[0]),
+                "result" : str(res.result[1]),
+                "enqueued_at" : str(res.enqueued_at),
+                "done_at" : str(res.ended_at)
+             }
+            }
+
+    return json.dumps(result)
 
 
 if __name__ == '__main__':

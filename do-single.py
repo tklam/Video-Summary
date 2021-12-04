@@ -10,6 +10,7 @@ import os
 import pathlib
 import subprocess as sp
 import sys
+import traceback
 extract_video_frames = importlib.import_module('extract-video-frames')
 find_speech = importlib.import_module('find-speech')
 gen_pptx = importlib.import_module('gen-pptx')
@@ -26,6 +27,8 @@ use_subtitles_to_deduplicate=False
 pptx_pixels_per_cm = 56.69291338582677
 remote_video_subtitle_lang=None
 run_stages=[]
+preview_start_timestamp=None
+preview_end_timestamp=None
 
 crop_width_pixel=0
 crop_height_pixel=0
@@ -85,22 +88,39 @@ def download_remote_video_and_set_local_path():
     for f in downloaded_file_dir.glob('video.*'):
         video_file_path = f.resolve()
         break
+    print(f'Downloaded video with file name: {video_file_path}')
+
+    # TODO more checks
+    if preview_end_timestamp != '00:00:00':
+        cut_video()
+    print(f'Cut video: {video_file_path}')
 
     if remote_video_subtitle_lang is not None:
         reencode_downloaded_video()
+    print(f'Recoded video: {video_file_path}')
 
-    print(f'Downloaded video with file name: {video_file_path}')
+
+def cut_video():
+    global video_file_path
+
+    print(f'Cut out video segment [{preview_start_timestamp}, {preview_end_timestamp}]')
+    preview_video_file_path = f'{video_file_path}.preview_{preview_start_timestamp}-{preview_end_timestamp}.mp4'
+    run_binary('ffmpeg' , f'-y -ss {preview_start_timestamp} -to {preview_end_timestamp} -i {video_file_path} -c copy {preview_video_file_path}')
+
+    preview_video_file = pathlib.Path(preview_video_file_path)
+    if preview_video_file.is_file():
+        video_file_path = preview_video_file_path
 
 
 def reencode_downloaded_video():
     print('The video needs re-encoding. This may take a long period of time.')
-    run_binary('ffmpeg' , f'-i {video_file_path} -filter_complex subtitles={video_file_path}:force_style=\'Fontsize=28,OutlineColour=&H80000000,BorderStyle=3,Outline=1,Shadow=0,MarginV=20\' video.mp4')
+    run_binary('ffmpeg' , f'-y -i {video_file_path} -filter_complex subtitles={video_file_path}:force_style=\'Fontsize=28,OutlineColour=&H80000000,BorderStyle=3,Outline=1,Shadow=0,MarginV=20\' video.mp4')
 
 
 def extract_audio():
     print('//------------------------------ Extract the audio')
     # Extract the audio from the video
-    run_binary('ffmpeg', f'-i {video_file_path} -q:a 0 -map a ./audio.wav')
+    run_binary('ffmpeg', f'-y -i {video_file_path} -q:a 0 -map a ./audio.wav')
     # Make the audio mono (and make it 32k)
     run_binary('sox', f'./audio.wav -c 1 -r 32000 ./32k-audio.wav')
 
@@ -124,6 +144,7 @@ def collect_interesting_frames():
     args.duration_secs = extract_video_frames.get_video_duration(video_file_path)
 
     extracted_frames_filenames, speech_timestampes_indexes = extract_video_frames.extract_main(args)
+
 
 def downsample_frames():
     ## Downsample the images if necessary
@@ -167,11 +188,14 @@ def generate_pptx():
     args.height_pixel = int(scaled_height_pixel)
     args.pixels_per_cm = pptx_pixels_per_cm 
 
-    gen_pptx.main(args)
+    pptx_filename = gen_pptx.main(args)
 
-    pptx_file = pathlib.Path('story.pptx')
+    pptx_file = pathlib.Path(pptx_filename)
+
     if pptx_file.is_file():
-        pptx_file.rename(f'{video_id}.pptx')
+        return str(pptx_file.resolve())
+    else:
+        return None
 
 
 def config_video_dimensions():
@@ -203,6 +227,7 @@ def main(args):
     global remote_video_subtitle_lang
     global run_stages
     global width_pixel, height_pixel
+    global preview_start_timestamp, preview_end_timestamp
 
     video_id = args.video_id
     if args.video_url is not None:
@@ -220,41 +245,61 @@ def main(args):
         remote_video_subtitle_lang=args.subtitle_lang
     run_stages = args.run_stages
 
-    if need_change_dir:
-        pathlib.Path.mkdir(pathlib.Path(video_id), parents=True, exist_ok=True)
-        os.chdir(video_id)
-        # everything we are doing will be inside {video_id}
+    status = 'Success'
+    result_filename = None
 
-    if RunStage.Download.value in run_stages:
-        if video_url is not None:
-            check_remote_video_subtitles()
-            download_remote_video_and_set_local_path()
+    # basic argument checking
+    # both preview_start_timestamp and preview_end_timestamp must exist, or not exist together
+    if args.preview_start_timestamp is None and args.preview_end_timestamp is not None:
+        return ('Error! Please set --preview_start_timestamp', None)
+    elif args.preview_start_timestamp is not None and args.preview_end_timestamp is None:
+        return ('Error! Please set --preview_end_timestamp', None)
+    else:
+        preview_start_timestamp = args.preview_start_timestamp
+        preview_end_timestamp = args.preview_end_timestamp
 
-    width_pixel, height_pixel = config_video_dimensions()
+    try:
+        if need_change_dir:
+            pathlib.Path.mkdir(pathlib.Path(video_id), parents=True, exist_ok=True)
+            os.chdir(video_id)
+            # everything we are doing will be inside {video_id}
 
-    print('-' * 80)
-    print('Video resolution:')
-    print(f'  width {width_pixel} px height: {height_pixel} px')
-    print(f'  crop: width {crop_width_pixel} px height: {crop_height_pixel} +x: {crop_x_offset} +y: {crop_y_offset} px')
-    print(f'  scaled: width {scaled_width_pixel} px height: {scaled_height_pixel} px')
-    print('-' * 80)
+        if RunStage.Download.value in run_stages:
+            if video_url is not None:
+                check_remote_video_subtitles()
+                download_remote_video_and_set_local_path()
+
+        width_pixel, height_pixel = config_video_dimensions()
+
+        print('-' * 80)
+        print('Video resolution:')
+        print(f'  width {width_pixel} px height: {height_pixel} px')
+        print(f'  crop: width {crop_width_pixel} px height: {crop_height_pixel} +x: {crop_x_offset} +y: {crop_y_offset} px')
+        print(f'  scaled: width {scaled_width_pixel} px height: {scaled_height_pixel} px')
+        print('-' * 80)
 
 
-    if RunStage.LocateSpeechSegments.value in run_stages:
-        extract_audio()
-        locate_speech_segments()
+        if RunStage.LocateSpeechSegments.value in run_stages:
+            extract_audio()
+            locate_speech_segments()
 
-    if RunStage.CollectFrames.value in run_stages:
-        collect_interesting_frames()
-        
-    if RunStage.DownSampleFrames.value in run_stages:
-        downsample_frames()
+        if RunStage.CollectFrames.value in run_stages:
+            collect_interesting_frames()
+            
+        if RunStage.DownSampleFrames.value in run_stages:
+            downsample_frames()
 
-    if RunStage.DeduplicateFrames.value in run_stages:
-        deduplicate_frames()
+        if RunStage.DeduplicateFrames.value in run_stages:
+            deduplicate_frames()
 
-    if RunStage.GeneratePptx.value in run_stages:
-        generate_pptx()
+        if RunStage.GeneratePptx.value in run_stages:
+            result_filename = generate_pptx()
+
+    except:
+        status = 'Failed: ' + traceback.format_exc()
+        print(status)
+
+    return (status, result_filename)
 
 
 if __name__ == '__main__':
@@ -287,6 +332,12 @@ if __name__ == '__main__':
 
     parser.add_argument('--subtitle_lang', required=False, default=None,
             help='Please specify an available subtitle such as "zh-HK" of the video to be downloaded. Only effective for video_url')
+
+    parser.add_argument('--preview_start_timestamp', required=False, default=None, type=string,
+            help='If specified, [preview_start_timestamp, preview_end_timestamp] of the original video will be used as the target video.')
+    parser.add_argument('--preview_end_timestamp', required=False, default=None, type=string,
+            help='If specified, [preview_start_timestamp, preview_end_timestamp] of the original video will be used as the target video.')
+
 
     parser.add_argument('--run_stages', required=False, default=[
         RunStage.Download.value,

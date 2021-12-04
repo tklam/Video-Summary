@@ -18,4 +18,3 @@ RUN pip install \
 RUN mkdir development
 RUN git clone https://github.com/video-summarizer-platform/Video-Summary.git
 RUN mv Video-Summary development
-RUN

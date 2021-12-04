@@ -37,7 +37,7 @@ def main(args):
         slide = presentation.slides.add_slide(first_slide_layout)
         pic = slide.shapes.add_picture(str(img_path), left, top, width=width, height=height)
       
-    rsult_filename = 'story.pptx'
+    result_filename = 'story.pptx'
     presentation.save(result_filename)
     return result_filename
 

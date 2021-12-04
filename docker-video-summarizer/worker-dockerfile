@@ -1,0 +1,11 @@
+FROM video-summarizer
+RUN python -m pip install --upgrade build
+COPY ./src/ /tmp/Video-Summary/src/
+COPY ./pyproject.toml /tmp/Video-Summary/
+COPY ./setup.cfg /tmp/Video-Summary/
+RUN cd /tmp/Video-Summary && \
+    python -m build
+RUN cd /tmp/Video-Summary && \
+    pip install --force-reinstall dist/py_video_summarizer-0.0.1-py3-none-any.whl
+WORKDIR /app
+CMD rq worker --url redis://video-summarizer-redis:6379

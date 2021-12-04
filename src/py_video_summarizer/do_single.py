@@ -3,7 +3,6 @@ from enum import Enum
 import argparse
 import collections
 import contextlib
-import deduplication
 import importlib  
 import math
 import os
@@ -11,9 +10,10 @@ import pathlib
 import subprocess as sp
 import sys
 import traceback
-extract_video_frames = importlib.import_module('extract-video-frames')
-find_speech = importlib.import_module('find-speech')
-gen_pptx = importlib.import_module('gen-pptx')
+import py_video_summarizer.deduplication as deduplication
+import py_video_summarizer.extract_video_frames as extract_video_frames
+import py_video_summarizer.find_speech as find_speech
+import py_video_summarizer.gen_pptx as gen_pptx
 
 
 extract_frames_time_interval = 1.0 # capture 1 frame per second
@@ -333,9 +333,9 @@ if __name__ == '__main__':
     parser.add_argument('--subtitle_lang', required=False, default=None,
             help='Please specify an available subtitle such as "zh-HK" of the video to be downloaded. Only effective for video_url')
 
-    parser.add_argument('--preview_start_timestamp', required=False, default=None, type=string,
+    parser.add_argument('--preview_start_timestamp', required=False, default=None, type=str,
             help='If specified, [preview_start_timestamp, preview_end_timestamp] of the original video will be used as the target video.')
-    parser.add_argument('--preview_end_timestamp', required=False, default=None, type=string,
+    parser.add_argument('--preview_end_timestamp', required=False, default=None, type=str,
             help='If specified, [preview_start_timestamp, preview_end_timestamp] of the original video will be used as the target video.')
 
 

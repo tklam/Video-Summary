@@ -1,0 +1,15 @@
+pyproject.toml
+setup.cfg
+src/py_video_summarizer/__init__.py
+src/py_video_summarizer/batch.py
+src/py_video_summarizer/capture_subtitle.py
+src/py_video_summarizer/deduplication.py
+src/py_video_summarizer/do_single.py
+src/py_video_summarizer/extract_video_frames.py
+src/py_video_summarizer/find_speech.py
+src/py_video_summarizer/gen_pptx.py
+src/py_video_summarizer/video_summarizer_api.py
+src/video_summarizer.egg-info/PKG-INFO
+src/video_summarizer.egg-info/SOURCES.txt
+src/video_summarizer.egg-info/dependency_links.txt
+src/video_summarizer.egg-info/top_level.txt

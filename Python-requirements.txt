@@ -1,5 +1,8 @@
 webrtcvad
 imagehash
-pptx
+python-pptx
 pytesseract
 opencv-python
+rq
+flask
+requests

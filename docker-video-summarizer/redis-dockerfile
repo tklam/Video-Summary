@@ -1,0 +1,8 @@
+FROM redis
+EXPOSE 6379
+WORKDIR /redis
+CMD redis-server
+
+#FROM video-summarizer
+#RUN sed -i -e 's/^protected-mode yes/protected-mode no/' /etc/redis/redis.conf
+#CMD redis-server /etc/redis/redis.conf

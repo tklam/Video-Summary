@@ -4,10 +4,11 @@ from urllib.parse import unquote
 import importlib  
 import json
 import redis
-video_summarizer = importlib.import_module('do-single')
+import py_video_summarizer.do_single as video_summarizer
 
 
-redis_host = 'localhost' # 'redis'
+#redis_host = 'localhost' # 'redis'
+redis_host = 'video-summarizer-redis' # 'redis'
 
 
 app = Flask(__name__)

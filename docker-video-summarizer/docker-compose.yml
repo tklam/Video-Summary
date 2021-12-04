@@ -1,0 +1,37 @@
+version: '3'
+services:
+    video-summarizer-redis:
+        image: video-summarizer-redis
+        container_name: video-summarizer-redis
+        build: 
+          context: ..
+          dockerfile: docker-video-summarizer/redis-dockerfile
+        ports:
+          - "6379:6379"
+        volumes:
+            - ../run/redis:/redis
+
+    video-summarizer-api:
+        image: video-summarizer-api
+        container_name: video-summarizer-api
+        build: 
+          context: ..
+          dockerfile: docker-video-summarizer/api-dockerfile
+        depends_on:
+            - video-summarizer-worker
+        restart: always
+        ports:
+            - '5000:5000'
+        volumes:
+            - ../run/app:/app
+
+    video-summarizer-worker:
+        image: video-summarizer-worker
+        container_name: video-summarizer-worker
+        build: 
+          context: ..
+          dockerfile: docker-video-summarizer/worker-dockerfile
+        depends_on:
+            - video-summarizer-redis
+        volumes:
+            - ../run/app:/app

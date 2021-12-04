@@ -1,0 +1,4 @@
+FROM video-summarizer-worker
+EXPOSE 500
+WORKDIR /app
+CMD python -m py_video_summarizer.video_summarizer_api

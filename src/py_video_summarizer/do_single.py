@@ -67,7 +67,8 @@ def run_binary_and_get_stdout(binary_name, arguments):
 
 def check_remote_video_subtitles():
     print('//------------------------------ List of subtitles available')
-    result = run_binary_and_get_stdout('youtube-dl', f'--list-subs --skip-download {video_url}')
+    #result = run_binary_and_get_stdout('youtube-dl', f'--list-subs --skip-download {video_url}')
+    result = run_binary_and_get_stdout('yt-dlp', f'--list-subs --skip-download {video_url}')
     print(result)
 
 
@@ -76,10 +77,12 @@ def download_remote_video_and_set_local_path():
 
     print('//------------------------------ Download the video')
     if remote_video_subtitle_lang is None:
-        run_binary('youtube-dl',  f'-v {video_url} -o video')
+        #run_binary('youtube-dl',  f'-v {video_url} -o video')
+        run_binary('yt-dlp',  f'-v {video_url} -o video')
         result = run_binary_and_get_stdout('ls',  f'-altr video.*')
     else:
-        run_binary('youtube-dl', f'-v --embed-subs --write-sub --convert-subtitles srt --sub-lang {remote_video_subtitle_lang} {video_url} -o video')
+        #run_binary('youtube-dl', f'-v --embed-subs --write-sub --convert-subtitles srt --sub-lang {remote_video_subtitle_lang} {video_url} -o video')
+        run_binary('yt-dlp', f'-v --embed-subs --write-sub --convert-subtitles srt --sub-lang {remote_video_subtitle_lang} {video_url} -o video')
         result = run_binary_and_get_stdout('ls',  f'-altr {os.getcwd()}/video.*')
 
     # it is expected to have only one video file

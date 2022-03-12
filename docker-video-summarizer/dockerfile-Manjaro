@@ -2,7 +2,7 @@ FROM manjarolinux/base
 # build with: docker build -t video-summarizer .
 
 # install dependencies
-RUN pacman -Sy --noconfirm yay ffmpeg img2pdf sox youtube-dl imagemagick tesseract tesseract-data-chi_tra python-pip neovim openssh redis
+RUN pacman -Sy --noconfirm yay ffmpeg img2pdf sox youtube-dl yt-dlp imagemagick tesseract tesseract-data-chi_tra python-pip neovim openssh redis
 
 # install necessary Python pacakges
 RUN pip install \

@@ -16,7 +16,7 @@ app = Flask(__name__)
 
 # redis server
 redis_server = redis.Redis(host=redis_host, port=6379)
-video_summarizer_queue = Queue(connection=redis_server, default_timeout=3600)
+video_summarizer_queue = Queue(connection=redis_server, default_timeout=-1)
 
 
 # e.g.
